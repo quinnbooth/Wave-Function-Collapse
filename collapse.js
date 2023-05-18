@@ -7,12 +7,13 @@ var cells = [];
 var images = [];
 var rotated_images = [];
 var matrix = [];
-let image_set = "basic";
+var image_set = "basic";
 var generate_ready = true;
 var cellSize = 50;
 
 const image_count = {
-    basic: 6
+    basic: 6,
+    circuit: 5
 }
 
 class Cell {
@@ -165,14 +166,84 @@ function draw_gridlines() {
     ctx.fillStyle = "#E7DFDD";
 }
 
+function load_images(image_set) {
+
+    console.log("Loading image set.");
+
+    generate_ready = false;
+    generate_button.textContent = "LOADING...";
+    draw_gridlines();
+    images = [];
+    const folder = `images/${image_set}`;
+    var loaded = 0;
+  
+    function imageLoaded() {
+      loaded++;
+      if (loaded === image_count[image_set]) {
+        generate_ready = true;
+      }
+    }
+  
+    for (let i = 0; i < image_count[image_set]; i++) {
+      var image = new Image();
+      image.crossOrigin = "Anonymous";
+      image.onload = imageLoaded;
+      image.src = `${folder}/${image_set}${i}.png`;
+      images.push(image);
+    }
+
+}
+
+function get_rgb(image, callback) {
+
+    // Setup a blank testing canvas to read image data
+    let test_canvas = document.createElement("canvas");
+    test_canvas.width = 50;
+    test_canvas.height = 50;
+    let test_ctx = test_canvas.getContext("2d", { willReadFrequently: true });
+    test_ctx.drawImage(image, 0, 0, 50, 50);
+
+    // Make sure image loads before testing for RGB values
+    setTimeout(() => {
+
+        const rgb_top1 = test_ctx.getImageData(12, 0, 1, 1).data;
+        const rgb_top2 = test_ctx.getImageData(25, 0, 1, 1).data;
+        const rgb_top3 = test_ctx.getImageData(37, 0, 1, 1).data;
+
+        const rgb_right1 = test_ctx.getImageData(49, 12, 1, 1).data;
+        const rgb_right2 = test_ctx.getImageData(49, 25, 1, 1).data;
+        const rgb_right3 = test_ctx.getImageData(49, 37, 1, 1).data;
+
+        const rgb_bottom1 = test_ctx.getImageData(12, 49, 1, 1).data;
+        const rgb_bottom2 = test_ctx.getImageData(25, 49, 1, 1).data;
+        const rgb_bottom3 = test_ctx.getImageData(37, 49, 1, 1).data;
+
+        const rgb_left1 = test_ctx.getImageData(0, 12, 1, 1).data;
+        const rgb_left2 = test_ctx.getImageData(0, 25, 1, 1).data;
+        const rgb_left3 = test_ctx.getImageData(0, 37, 1, 1).data;
+      
+        let rgb_top = rgb_top1.slice(0, 3).join('') + rgb_top2.slice(0, 3).join('') + rgb_top3.slice(0, 3).join('');
+        let rgb_right = rgb_right1.slice(0, 3).join('') + rgb_right2.slice(0, 3).join('') + rgb_right3.slice(0, 3).join('');
+        let rgb_bottom = rgb_bottom1.slice(0, 3).join('') + rgb_bottom2.slice(0, 3).join('') + rgb_bottom3.slice(0, 3).join('');
+        let rgb_left = rgb_left1.slice(0, 3).join('') + rgb_left2.slice(0, 3).join('') + rgb_left3.slice(0, 3).join('');
+
+        callback(image, [rgb_top, rgb_right, rgb_bottom, rgb_left]);
+
+    }, 10);
+
+}
+
 function get_rotations(images, callback) {
 
     // Wait until images are loaded
     if (!generate_ready) {
-        window.setTimeout(get_rotations, 100, images, callback);
+        window.setTimeout(get_rotations, 100, images/*, callback*/);
         return;
     }
 
+    console.log("Rotating images.");
+
+    rotated = false;
     generate_ready = false;
     rotated_images = [];
 
@@ -180,11 +251,11 @@ function get_rotations(images, callback) {
         rotated_images.push(rot);
 
         // Load cells once all images have been rotated
-        if (count >= images.length - 1) {
+        /*if (count >= images.length - 1) {
             setTimeout(() => {
                 callback();
             }, 10);
-        }
+        }*/
     }
 
     for (let i = 0; i < images.length; i++) {
@@ -288,72 +359,9 @@ function get_rotations(images, callback) {
     }
 }
 
-function load_images(image_set) {
-
-    generate_ready = false;
-    generate_button.textContent = "LOADING...";
-    draw_gridlines();
-    images = [];
-    const folder = `images/${image_set}`;
-    var loaded = 0;
-  
-    function imageLoaded() {
-      loaded++;
-      if (loaded === image_count[image_set]) {
-        generate_ready = true;
-      }
-    }
-  
-    for (let i = 0; i < image_count[image_set]; i++) {
-      var image = new Image();
-      image.crossOrigin = "Anonymous";
-      image.onload = imageLoaded;
-      image.src = `${folder}/${image_set}${i}.png`;
-      images.push(image);
-    }
-}
-
-function get_rgb(image, callback) {
-
-    // Setup a blank testing canvas to read image data
-    let test_canvas = document.createElement("canvas");
-    test_canvas.width = 50;
-    test_canvas.height = 50;
-    let test_ctx = test_canvas.getContext("2d", { willReadFrequently: true });
-    test_ctx.drawImage(image, 0, 0, 50, 50);
-
-    // Make sure image loads before testing for RGB values
-    setTimeout(() => {
-
-        const rgb_top1 = test_ctx.getImageData(12, 0, 1, 1).data;
-        const rgb_top2 = test_ctx.getImageData(25, 0, 1, 1).data;
-        const rgb_top3 = test_ctx.getImageData(36, 0, 1, 1).data;
-
-        const rgb_right1 = test_ctx.getImageData(49, 12, 1, 1).data;
-        const rgb_right2 = test_ctx.getImageData(49, 25, 1, 1).data;
-        const rgb_right3 = test_ctx.getImageData(49, 36, 1, 1).data;
-
-        const rgb_bottom1 = test_ctx.getImageData(12, 49, 1, 1).data;
-        const rgb_bottom2 = test_ctx.getImageData(25, 49, 1, 1).data;
-        const rgb_bottom3 = test_ctx.getImageData(36, 49, 1, 1).data;
-
-        const rgb_left1 = test_ctx.getImageData(0, 12, 1, 1).data;
-        const rgb_left2 = test_ctx.getImageData(0, 25, 1, 1).data;
-        const rgb_left3 = test_ctx.getImageData(0, 36, 1, 1).data;
-      
-        let rgb_top = rgb_top1.slice(0, 3).join('') + rgb_top2.slice(0, 3).join('') + rgb_top3.slice(0, 3).join('');
-        let rgb_right = rgb_right1.slice(0, 3).join('') + rgb_right2.slice(0, 3).join('') + rgb_right3.slice(0, 3).join('');
-        let rgb_bottom = rgb_bottom1.slice(0, 3).join('') + rgb_bottom2.slice(0, 3).join('') + rgb_bottom3.slice(0, 3).join('');
-        let rgb_left = rgb_left1.slice(0, 3).join('') + rgb_left2.slice(0, 3).join('') + rgb_left3.slice(0, 3).join('');
-
-        callback(image, [rgb_top, rgb_right, rgb_bottom, rgb_left]);
-
-    }, 10);
-
-}
-
 function load_cells(callback) {
 
+    console.log("Loading images into cells.")
     cells = [];
 
     for (let i = 0; i < rotated_images.length; i++) {
@@ -367,23 +375,11 @@ function load_cells(callback) {
 
 }
 
-function test_rotated_images() {
-
-    let x = 0;
-    let y = 0;
-
-    for (let i = 0; i < rotated_images.length; i++) {
-        ctx.drawImage(rotated_images[i], x, y, 50, 50);
-        x += 50;
-        if (x > canvas.width - 50) {
-            x = 0;
-            y += 50;
-        }
-    }
-}
-
 function determine_constraints() {
 
+    let bad_cells = [];
+
+    // Determine which cells match which in every direction as constraints
     for (let i = 0; i < cells.length; i++) {
         for (let j = 0; j < cells.length; j++) {
             if (cells[i].colors[0] == cells[j].colors[2]) {
@@ -399,20 +395,75 @@ function determine_constraints() {
                 cells[i].left.push(j);
             }
         }
+
+        // Note if a cell has no neighbors on some side
+        if (cells[i].top.length == 0 || cells[i].right.length == 0 || cells[i].bottom.length == 0 || cells[i].left.length == 0) {
+            bad_cells.push(cells[i]);
+        }
+    }
+
+    // Remove cells that have no neighbors on some side
+    for (let i = 0; i < bad_cells.length; i++) {
+        const badIndex = cells.indexOf(bad_cells[i]);
+        if (badIndex > -1) {
+            cells.splice(badIndex, 1);
+        }
     }
 }
 
 function load_new_images() {
     load_images(image_set);
-    get_rotations(images, function () {
+
+    // get_rotations(images, function () {
+    //     load_cells(function () {
+    //         setTimeout(() => {
+    //             determine_constraints();
+    //             generate_ready = true;
+    //             generate_button.textContent = "GENERATE";
+    //         }, 10);
+    //     });
+    // });
+
+    get_rotations(images);
+    setTimeout(() => {
         load_cells(function () {
             setTimeout(() => {
                 determine_constraints();
                 generate_ready = true;
                 generate_button.textContent = "GENERATE";
-            }, 10);
+            }, 100);
         });
-    });
+    }, 1000);
+}
+
+function test_rotated_images() {
+
+    console.log(images);
+    console.log(rotated_images);
+    console.log(cells);
+
+    let x = 0;
+    let y = 0;
+
+    for (let i = 0; i < rotated_images.length; i++) {
+        ctx.drawImage(rotated_images[i], x, y, 50, 50);
+        x += 50;
+        if (x > canvas.width - 50) {
+            x = 0;
+            y += 50;
+        }
+    }
+
+    y += 100;
+
+    for (let i = 0; i < cells.length; i++) {
+        ctx.drawImage(cells[i].image, x, y, 50, 50);
+        x += 50;
+        if (x > canvas.width - 50) {
+            x = 0;
+            y += 50;
+        }
+    }
 }
 
 //#endregion
@@ -492,14 +543,15 @@ function recalculate_constraints(matrix, box) {
 function generate() {
 
     if (!generate_ready) return;
-    //test_rotated_images();
+    // test_rotated_images();
+    // return;
 
     // Create matrix to store state of wave function collapse
     matrix = [];
     for (let i = 0; i < collapse_height; i++) {
         matrix.push([]);
         for (let j = 0; j < collapse_width; j++) {
-            let box = new Box(rotated_images.length);
+            let box = new Box(cells.length);
             box.x = j;
             box.y = i;
             matrix[i].push(box);
@@ -508,21 +560,33 @@ function generate() {
     draw_current_state(matrix);
 
     // Fill the matrix box-by-box
-    let c = 0;
-    let timeout = 1000;
-    let max = collapse_height * collapse_width;
-    while (c < max) {
-        c++;
 
-        let solved_box = solve_next_cell(matrix);
-        // Restart generation if any box has zero possible images that fit constraints
-        if (recalculate_constraints(matrix, solved_box) == -1) {
-            generate();
-            break;
+    let c = 0;
+    let max = collapse_height * collapse_width;
+
+    async function next_matrix() {
+
+        while (c < max) {
+            c++;
+    
+            let solved_box = solve_next_cell(matrix);
+            // Restart generation if any box has zero possible images that fit constraints
+            if (recalculate_constraints(matrix, solved_box) == -1) {
+                generate();
+                break;
+            }
+    
+            await draw_current_state(matrix);
         }
 
-        draw_current_state(matrix);
     }
+    
+    next_matrix();
+
+    // let max = collapse_height * collapse_width;
+    // next_matrix(matrix, max, 0);
+
+
 }
 
 load_new_images();
