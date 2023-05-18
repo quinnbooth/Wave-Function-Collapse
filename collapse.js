@@ -27,12 +27,28 @@ class Cell {
 }
 
 class Box {
-    constructor(total_cells) {
-        this.done = false;
+
+    constructor(total_cells, x, y) {
+        this._done = false;
+        this.x = x;
+        this.y = y;
         this.possibilities = [];
         for (let i = 0; i < total_cells; i++) {
             this.possibilities.push(i);
         }
+    }
+
+    set done(val) {
+        this._done = val;
+        if (this._done) {
+            // Pick a random possibility
+            let randIndex = Math.floor(Math.random() * this.possibilities.length);
+            this.possibilities = [this.possibilities[randIndex]];
+        }
+    }
+
+    get done() {
+        return this._done;
     }
 }
 
@@ -376,7 +392,7 @@ function determine_constraints() {
             if (cells[i].colors[1] == cells[j].colors[3]) {
                 cells[i].right.push(j);
             }
-            if (cells[i].colors[2] == cells[j].colors[4]) {
+            if (cells[i].colors[2] == cells[j].colors[0]) {
                 cells[i].bottom.push(j);
             }
             if (cells[i].colors[3] == cells[j].colors[1]) {
@@ -415,6 +431,64 @@ function draw_current_state(matrix) {
     }
 }
 
+function solve_next_cell(matrix) {
+    
+    // Get boxes with minimum entropy (possibilities) -- ignore solved cells
+    let lowestEntropy = 0;
+    let lowEntropyCells = [];
+    for (let i = 0; i < matrix.length; i++) {
+        for (let j = 0; j < matrix[i].length; j++) {
+            let currentBox = matrix[i][j];
+            let currentEntropy = currentBox.possibilities.length;
+            if (!currentBox.done) {
+                if (lowEntropyCells.length == 0 || currentEntropy == lowestEntropy) {
+                    lowestEntropy = currentEntropy;
+                    lowEntropyCells.push(currentBox);
+                } else if (currentEntropy < lowestEntropy) {
+                    lowestEntropy = currentEntropy;
+                    lowEntropyCells = [currentBox];
+                }
+            }
+        }
+    }
+
+    // Pick a box at random to solve from the low entropy list
+    let randIndex = Math.floor(Math.random() * lowEntropyCells.length);
+    lowEntropyCells[randIndex].done = true;
+    return lowEntropyCells[randIndex];
+    
+}
+
+function recalculate_constraints(matrix, box) {
+    let x = box.x;
+    let y = box.y;
+    let neighbor_constraints = cells[box.possibilities[0]];
+    if (x+1 < collapse_width && !matrix[y][x+1].done) {
+        matrix[y][x+1].possibilities = matrix[y][x+1].possibilities.filter((element) => neighbor_constraints.right.includes(element));
+        if (matrix[y][x+1].possibilities.length <= 0) {
+            return -1;
+        }
+    }
+    if (x-1 >= 0 && !matrix[y][x-1].done) {
+        matrix[y][x-1].possibilities = matrix[y][x-1].possibilities.filter((element) => neighbor_constraints.left.includes(element));
+        if (matrix[y][x-1].possibilities.length <= 0) {
+            return -1;
+        }
+    }
+    if (y+1 < collapse_height && !matrix[y+1][x].done) {
+        matrix[y+1][x].possibilities = matrix[y+1][x].possibilities.filter((element) => neighbor_constraints.bottom.includes(element));
+        if (matrix[y+1][x].possibilities.length <= 0) {
+            return -1;
+        }
+    }
+    if (y-1 >= 0 && !matrix[y-1][x].done) {
+        matrix[y-1][x].possibilities = matrix[y-1][x].possibilities.filter((element) => neighbor_constraints.top.includes(element));
+        if (matrix[y-1][x].possibilities.length <= 0) {
+            return -1;
+        }
+    }
+}
+
 function generate() {
 
     if (!generate_ready) return;
@@ -426,13 +500,29 @@ function generate() {
         matrix.push([]);
         for (let j = 0; j < collapse_width; j++) {
             let box = new Box(rotated_images.length);
+            box.x = j;
+            box.y = i;
             matrix[i].push(box);
         }
     }
-
-    // Calculate the next state of the matrix
     draw_current_state(matrix);
 
+    // Fill the matrix box-by-box
+    let c = 0;
+    let timeout = 1000;
+    let max = collapse_height * collapse_width;
+    while (c < max) {
+        c++;
+
+        let solved_box = solve_next_cell(matrix);
+        // Restart generation if any box has zero possible images that fit constraints
+        if (recalculate_constraints(matrix, solved_box) == -1) {
+            generate();
+            break;
+        }
+
+        draw_current_state(matrix);
+    }
 }
 
 load_new_images();
