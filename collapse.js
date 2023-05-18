@@ -6,8 +6,10 @@
 var cells = [];
 var images = [];
 var rotated_images = [];
+var matrix = [];
 let image_set = "basic";
 var generate_ready = true;
+var cellSize = 50;
 
 const image_count = {
     basic: 6
@@ -17,6 +19,20 @@ class Cell {
     constructor(image, colors) {
         this.image = image;
         this.colors = colors;
+        this.top = [];
+        this.right = [];
+        this.bottom = [];
+        this.left = [];
+    }
+}
+
+class Box {
+    constructor(total_cells) {
+        this.done = false;
+        this.possibilities = [];
+        for (let i = 0; i < total_cells; i++) {
+            this.possibilities.push(i);
+        }
     }
 }
 
@@ -34,6 +50,8 @@ collapse_width = Math.floor(maxWidth * 0.75);
 collapse_height = Math.floor(maxHeight * 0.75);
 canvas.width = String(collapse_width * 50);
 canvas.height = String(collapse_height * 50);
+
+var generate_button = document.getElementById("generate_button");
 
 var ctx = canvas.getContext("2d");
 draw_gridlines();
@@ -109,6 +127,8 @@ window.addEventListener('resize', function() {
 
 //#endregion
 
+//#region Loading Images
+
 function draw_gridlines() {
 
     ctx.fillStyle = "#442b9e";
@@ -129,16 +149,26 @@ function draw_gridlines() {
     ctx.fillStyle = "#E7DFDD";
 }
 
-function get_rotations(images) {
+function get_rotations(images, callback) {
 
     // Wait until images are loaded
     if (!generate_ready) {
-        window.setTimeout(get_rotations, 100, images);
+        window.setTimeout(get_rotations, 100, images, callback);
         return;
     }
 
-    function addRotation(rot) {
+    generate_ready = false;
+    rotated_images = [];
+
+    function addRotation(count, rot) {
         rotated_images.push(rot);
+
+        // Load cells once all images have been rotated
+        if (count >= images.length - 1) {
+            setTimeout(() => {
+                callback();
+            }, 10);
+        }
     }
 
     for (let i = 0; i < images.length; i++) {
@@ -233,10 +263,11 @@ function get_rotations(images) {
                 if (unique_rotations[j] == j + 1) {
                     const rotated_image = new Image();
                     rotated_image.crossOrigin = "Anonymous";
-                    rotated_image.onload = addRotation(rotated_image);
+                    rotated_image.onload = addRotation(i, rotated_image);
                     rotated_image.src = rgb_list[j].toDataURL();
                 }
             }
+
         }, 10);
     }
 }
@@ -244,7 +275,9 @@ function get_rotations(images) {
 function load_images(image_set) {
 
     generate_ready = false;
+    generate_button.textContent = "LOADING...";
     draw_gridlines();
+    images = [];
     const folder = `images/${image_set}`;
     var loaded = 0;
   
@@ -284,13 +317,13 @@ function get_rgb(image, callback) {
         const rgb_right2 = test_ctx.getImageData(49, 25, 1, 1).data;
         const rgb_right3 = test_ctx.getImageData(49, 36, 1, 1).data;
 
-        const rgb_bottom1 = test_ctx.getImageData(36, 49, 1, 1).data;
+        const rgb_bottom1 = test_ctx.getImageData(12, 49, 1, 1).data;
         const rgb_bottom2 = test_ctx.getImageData(25, 49, 1, 1).data;
-        const rgb_bottom3 = test_ctx.getImageData(12, 49, 1, 1).data;
+        const rgb_bottom3 = test_ctx.getImageData(36, 49, 1, 1).data;
 
-        const rgb_left1 = test_ctx.getImageData(0, 36, 1, 1).data;
+        const rgb_left1 = test_ctx.getImageData(0, 12, 1, 1).data;
         const rgb_left2 = test_ctx.getImageData(0, 25, 1, 1).data;
-        const rgb_left3 = test_ctx.getImageData(0, 12, 1, 1).data;
+        const rgb_left3 = test_ctx.getImageData(0, 36, 1, 1).data;
       
         let rgb_top = rgb_top1.slice(0, 3).join('') + rgb_top2.slice(0, 3).join('') + rgb_top3.slice(0, 3).join('');
         let rgb_right = rgb_right1.slice(0, 3).join('') + rgb_right2.slice(0, 3).join('') + rgb_right3.slice(0, 3).join('');
@@ -305,36 +338,24 @@ function get_rgb(image, callback) {
 
 function load_cells(callback) {
 
-    if (!generate_ready) {
-        window.setTimeout(load_cells, 100, callback);
-        return;
+    cells = [];
+
+    for (let i = 0; i < rotated_images.length; i++) {
+        get_rgb(rotated_images[i], function (image, rgb) {
+            let cell = new Cell(image, rgb);
+            cells.push(cell);
+        });   
     }
 
-    get_rgb(images[4], function (image, rgb) {
-        let cell = new Cell(image, rgb);
-        get_rotations(image);
-        cells.push(cell);
-    });
-
-    // for (let i = 0; i < images.length; i++) {
-
-    //     get_rgb(images[i], function (image, rgb) {
-    //         let cell = new Cell(image, rgb);
-    //         cells.push(cell);
-    //     });
-        
-    // }
-        
     callback();
 
 }
 
-function generate() {
-
-    if (!generate_ready) return;
+function test_rotated_images() {
 
     let x = 0;
     let y = 0;
+
     for (let i = 0; i < rotated_images.length; i++) {
         ctx.drawImage(rotated_images[i], x, y, 50, 50);
         x += 50;
@@ -343,18 +364,77 @@ function generate() {
             y += 50;
         }
     }
+}
 
-    
+function determine_constraints() {
+
+    for (let i = 0; i < cells.length; i++) {
+        for (let j = 0; j < cells.length; j++) {
+            if (cells[i].colors[0] == cells[j].colors[2]) {
+                cells[i].top.push(j);
+            }
+            if (cells[i].colors[1] == cells[j].colors[3]) {
+                cells[i].right.push(j);
+            }
+            if (cells[i].colors[2] == cells[j].colors[4]) {
+                cells[i].bottom.push(j);
+            }
+            if (cells[i].colors[3] == cells[j].colors[1]) {
+                cells[i].left.push(j);
+            }
+        }
+    }
+}
+
+function load_new_images() {
+    load_images(image_set);
+    get_rotations(images, function () {
+        load_cells(function () {
+            setTimeout(() => {
+                determine_constraints();
+                generate_ready = true;
+                generate_button.textContent = "GENERATE";
+            }, 10);
+        });
+    });
+}
+
+//#endregion
+
+function draw_current_state(matrix) {
+
+    draw_gridlines();
+
+    for (let i = 0; i < matrix.length; i++) {
+        for (let j = 0; j < matrix[i].length; j++) {
+            let current_box = matrix[i][j];
+            if (current_box.done == true) {
+                ctx.drawImage(rotated_images[current_box.possibilities[0]], j * 50, i * 50, cellSize, cellSize);
+            }
+        }
+    }
+}
+
+function generate() {
+
+    if (!generate_ready) return;
+    //test_rotated_images();
+
+    // Create matrix to store state of wave function collapse
+    matrix = [];
+    for (let i = 0; i < collapse_height; i++) {
+        matrix.push([]);
+        for (let j = 0; j < collapse_width; j++) {
+            let box = new Box(rotated_images.length);
+            matrix[i].push(box);
+        }
+    }
+
+    // Calculate the next state of the matrix
+    draw_current_state(matrix);
 
 }
 
-load_images(image_set);
-get_rotations(images, image_set);
+load_new_images();
 
-// put load_cells in a callback from get_rotations
 
-// load_cells(function () {
-//     console.log(cells);
-// });
-
-// change generate to loading when loading
