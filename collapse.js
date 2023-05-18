@@ -5,6 +5,7 @@
 
 var cells = [];
 var images = [];
+var rotated_images = [];
 let image_set = "basic";
 var generate_ready = true;
 
@@ -128,6 +129,118 @@ function draw_gridlines() {
     ctx.fillStyle = "#E7DFDD";
 }
 
+function get_rotations(images) {
+
+    // Wait until images are loaded
+    if (!generate_ready) {
+        window.setTimeout(get_rotations, 100, images);
+        return;
+    }
+
+    function addRotation(rot) {
+        rotated_images.push(rot);
+    }
+
+    for (let i = 0; i < images.length; i++) {
+
+        let image = images[i];
+
+        // 0 degree rotation
+        let canvas0 = document.createElement("canvas");
+        canvas0.width = 50; canvas0.height = 50;
+        let ctx0 = canvas0.getContext("2d", { willReadFrequently: true });
+        ctx0.drawImage(image, 0, 0, 50, 50);
+
+        // 90 degree rotation
+        let canvas90 = document.createElement("canvas");
+        canvas90.width = 50; canvas90.height = 50;
+        let ctx90 = canvas90.getContext("2d", { willReadFrequently: true });
+        ctx90.rotate(90 * Math.PI / 180);
+        ctx90.drawImage(image, 0, -image.height, image.width, image.height);
+
+        // 180 degree rotation
+        let canvas180 = document.createElement("canvas");
+        canvas180.width = 50; canvas180.height = 50;
+        let ctx180 = canvas180.getContext("2d", { willReadFrequently: true });
+        ctx180.rotate(180 * Math.PI / 180);
+        ctx180.drawImage(image, -image.width, -image.height, image.width, image.height);
+
+        // 270 degree rotation
+        let canvas270 = document.createElement("canvas");
+        canvas270.width = 50; canvas270.height = 50;
+        let ctx270 = canvas270.getContext("2d", { willReadFrequently: true });
+        ctx270.rotate(270 * Math.PI / 180);
+        ctx270.drawImage(image, -image.width, 0, image.width, image.height);
+
+        // Make sure images load before testing differences
+        setTimeout(() => {
+
+            let rgb0 = ctx0.getImageData(0, 0, canvas0.width, canvas0.height).data;
+            let rgb90 = ctx90.getImageData(0, 0, canvas90.width, canvas90.height).data;
+            let rgb180 = ctx180.getImageData(0, 0, canvas180.width, canvas180.height).data;
+            let rgb270 = ctx270.getImageData(0, 0, canvas270.width, canvas270.height).data;
+
+            let unique_rotations = [1, 0, 0, 0];
+
+            // Check if anything is equivalent to initial orientation
+            for (let j = 0; j < rgb0.length; j++) {
+                if (rgb0[j] != rgb90[j]) {
+                    unique_rotations[1] = 2;
+                }
+                if (rgb0[j] != rgb180[j]) {
+                    unique_rotations[2] = 2;
+                }
+                if (rgb0[j] != rgb270[j]) {
+                    unique_rotations[3] = 2;
+                }
+            }
+
+            // Check if anything is equivalent to 90 degree rotation if necessary
+            if (unique_rotations[1] >= 2) {
+                for (let j = 0; j < rgb90.length; j++) {
+                    if (rgb90[j] != rgb180[j] && unique_rotations[2] >= 2) {
+                        unique_rotations[2] = 3;
+                    }
+                    if (rgb90[j] != rgb270[j] && unique_rotations[3] >= 2) {
+                        unique_rotations[3] = 3;
+                    }
+                }
+            } else {
+                if (unique_rotations[2] >= 2) {
+                    unique_rotations[2] = 3;
+                }
+                if (unique_rotations[3] >= 2) {
+                    unique_rotations[3] = 3;
+                }
+            }
+
+            // Check if anything is equivalent to 180 degree rotation if necessary
+            if (unique_rotations[2] >= 3) {
+                for (let j = 0; j < rgb180.length; j++) {
+                    if (rgb180[j] != rgb270[j] && unique_rotations[3] >= 3) {
+                        unique_rotations[3] = 4;
+                    }
+                }
+            } else {
+                if (unique_rotations[3] >= 3) {
+                    unique_rotations[3] = 4;
+                }
+            }
+
+            // Push relevant images to list
+            let rgb_list = [canvas0, canvas90, canvas180, canvas270];
+            for (let j = 0; j < 4; j++) {
+                if (unique_rotations[j] == j + 1) {
+                    const rotated_image = new Image();
+                    rotated_image.crossOrigin = "Anonymous";
+                    rotated_image.onload = addRotation(rotated_image);
+                    rotated_image.src = rgb_list[j].toDataURL();
+                }
+            }
+        }, 10);
+    }
+}
+
 function load_images(image_set) {
 
     generate_ready = false;
@@ -197,30 +310,51 @@ function load_cells(callback) {
         return;
     }
 
-    for (let i = 0; i < images.length; i++) {
+    get_rgb(images[4], function (image, rgb) {
+        let cell = new Cell(image, rgb);
+        get_rotations(image);
+        cells.push(cell);
+    });
 
-        get_rgb(images[i], function (image, rgb) {
-            let cell = new Cell(image, rgb);
-            cells.push(cell);
-        });
+    // for (let i = 0; i < images.length; i++) {
+
+    //     get_rgb(images[i], function (image, rgb) {
+    //         let cell = new Cell(image, rgb);
+    //         cells.push(cell);
+    //     });
         
-    }
+    // }
         
     callback();
 
 }
 
-
 function generate() {
 
     if (!generate_ready) return;
 
-    ctx.drawImage(images[4], 0, 0, 50, 50);
+    let x = 0;
+    let y = 0;
+    for (let i = 0; i < rotated_images.length; i++) {
+        ctx.drawImage(rotated_images[i], x, y, 50, 50);
+        x += 50;
+        if (x > canvas.width - 50) {
+            x = 0;
+            y += 50;
+        }
+    }
+
+    
 
 }
 
 load_images(image_set);
-load_cells(function () {
-    console.log(cells);
-});
+get_rotations(images, image_set);
 
+// put load_cells in a callback from get_rotations
+
+// load_cells(function () {
+//     console.log(cells);
+// });
+
+// change generate to loading when loading
