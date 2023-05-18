@@ -3,10 +3,15 @@ body {
     background-color: #0E0B16;
 }
 
+canvas {
+    position: absolute;
+    border: 3px solid #442b9e;
+}
+
 .collapse_container {
     position: absolute;
-    border: 1px solid black;
-    background-color: #E7DFDD;
+    border: 1px solid transparent;
+    background-color: transparent;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -27,10 +32,35 @@ body {
     border-radius: 10px;
 }
 
+.generate_button {
+    position: absolute;
+    background-color: #E7DFDD;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    border-top: 5px solid #A239CA;
+    border-left: 5px solid #A239CA;
+    width: 40%;
+    height: 70%;
+    bottom: 13%;
+    left: 42.25%;
+    text-align: center;
+    line-height: 40px;
+    cursor: pointer;
+    font-size: 2em;
+    font-family: Impact, sans-serif;
+}
+
+.generate_button:active {
+    background-color: #A239CA;
+    color: white;
+}
+
 .input_field {
     position: absolute;
     width: 10%;
-    height: 10%;
+    height: 70%;
     background-color: #E7DFDD;
     display: flex;
     justify-content: center;
@@ -41,12 +71,12 @@ body {
 }
 
 .input_field.height {
-    bottom: 2.5%;
+    bottom: 13%;
     left: 1.5%;
 }
 
 .input_field.width {
-    bottom: 2.5%;
+    bottom: 13%;
     left: 13%;
 }
 

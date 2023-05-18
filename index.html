@@ -4,15 +4,15 @@
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
-        <div class="collapse_container" id="collapse_container">
-            <canvas id="collapse_window"></canvas>
-        </div>
-        <div class="control_center"></div>
-        <div class="input_field height">
-            <input type="number" id="height_field" placeholder="Height">
-        </div>
-        <div class="input_field width">
-            <input type="number" id="width_field" placeholder="Width">
+        <div class="collapse_container" id="collapse_container"></div>
+        <div class="control_center">
+            <div class="input_field height">
+                <input type="number" id="height_field" placeholder="Height">
+            </div>
+            <div class="input_field width">
+                <input type="number" id="width_field" placeholder="Width">
+            </div>
+            <div class="generate_button" onclick="generate()">GENERATE</div>
         </div>
         <script defer src="./collapse.js"></script>
     </body>
