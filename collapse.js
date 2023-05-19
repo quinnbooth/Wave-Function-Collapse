@@ -13,7 +13,8 @@ var cellSize = 50;
 
 const image_count = {
     basic: 6,
-    circuit: 12
+    circuit: 12,
+    roots: 12
 }
 
 class Cell {
@@ -187,7 +188,8 @@ instant_button.addEventListener('click', function() {
 
 const basic_selector = document.getElementById('basic_selector');
 const circuit_selector = document.getElementById('circuit_selector');
-var selectors = [basic_selector, circuit_selector];
+const roots_selector = document.getElementById('roots_selector');
+var selectors = [basic_selector, circuit_selector, roots_selector];
 
 function setSelection(button) {
     for (let i = 0; i < selectors.length; i++) {
@@ -499,36 +501,6 @@ function load_new_images() {
     }, 1000);
 }
 
-function test_rotated_images() {
-
-    console.log(images);
-    console.log(rotated_images);
-    console.log(cells);
-
-    let x = 0;
-    let y = 0;
-
-    for (let i = 0; i < rotated_images.length; i++) {
-        ctx.drawImage(rotated_images[i], x, y, 50, 50);
-        x += 50;
-        if (x > canvas.width - 50) {
-            x = 0;
-            y += 50;
-        }
-    }
-
-    y += 100;
-
-    for (let i = 0; i < cells.length; i++) {
-        ctx.drawImage(cells[i].image, x, y, 50, 50);
-        x += 50;
-        if (x > canvas.width - 50) {
-            x = 0;
-            y += 50;
-        }
-    }
-}
-
 //#endregion
 
 //#region Perform Wave Function Collapse
@@ -678,6 +650,37 @@ function recalculate_constraints(matrix, box) {
     return -1;
 
 }
+
+function test_rotated_images() {
+
+    console.log(images);
+    console.log(rotated_images);
+    console.log(cells);
+
+    let x = 0;
+    let y = 0;
+
+    for (let i = 0; i < rotated_images.length; i++) {
+        ctx.drawImage(rotated_images[i], x, y, 50, 50);
+        x += 50;
+        if (x > canvas.width - 50) {
+            x = 0;
+            y += 50;
+        }
+    }
+
+    y += 100;
+
+    for (let i = 0; i < cells.length; i++) {
+        ctx.drawImage(cells[i].image, x, y, 50, 50);
+        x += 50;
+        if (x > canvas.width - 50) {
+            x = 0;
+            y += 50;
+        }
+    }
+}
+
 
 function generate() {
 
