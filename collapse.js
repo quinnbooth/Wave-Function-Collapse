@@ -61,10 +61,12 @@ const collapse_container = document.getElementById('collapse_container');
 var canvas = document.createElement("canvas");
 collapse_container.appendChild(canvas);
 
+var heightCap = 10;
+var widthCap = 12;
 var maxHeight = Math.floor(collapse_container.clientHeight / 50);
 var maxWidth = Math.floor(collapse_container.clientWidth / 50);
-collapse_width = Math.floor(maxWidth * 0.75);
-collapse_height = Math.floor(maxHeight * 0.75);
+collapse_width = Math.min(Math.floor(maxWidth * 0.75), widthCap);
+collapse_height = Math.min(Math.floor(maxHeight * 0.75), heightCap);
 canvas.width = String(collapse_width * 50);
 canvas.height = String(collapse_height * 50);
 
@@ -124,11 +126,9 @@ window_width.addEventListener('focus', (event) => {
 
 // Resize canvas when window is resized
 
-var abort_generation = false;
-
 window.addEventListener('resize', function() {
-    maxHeight = Math.floor(collapse_container.clientHeight / 50);
-    maxWidth = Math.floor(collapse_container.clientWidth / 50);
+    maxHeight = Math.min(Math.floor(collapse_container.clientHeight / 50), heightCap);
+    maxWidth = Math.min(Math.floor(collapse_container.clientWidth / 50), widthCap);
     if (collapse_height > maxHeight) {
         collapse_height = maxHeight;
         window_height.value = collapse_height;
@@ -140,6 +140,34 @@ window.addEventListener('resize', function() {
         canvas.width = String(collapse_width * 50);
     }
     draw_gridlines()
+});
+
+// Swap between slow and fast generation modes
+
+var generation_mode = "slow";
+const instant_button = document.getElementById('instant_button');
+instant_button.addEventListener('click', function() {
+    instant_button.classList.toggle('button-active');
+    if (instant_button.classList.contains('button-active')) {
+        heightCap = 14;
+        widthCap = 16;
+        instant_button.style.backgroundColor = "#A239CA";
+        instant_button.style.borderTop = "5px solid #E7DFDD";
+        instant_button.style.borderLeft = "5px solid #E7DFDD";
+        instant_button.style.color = "white";
+        instant_button.textContent = "FAST";
+        generation_mode = "fast";
+    } else {
+        heightCap = 10;
+        widthCap = 12;
+        instant_button.style.backgroundColor = "#E7DFDD";
+        instant_button.style.borderTop = "5px solid #A239CA";
+        instant_button.style.borderLeft = "5px solid #A239CA";
+        instant_button.style.color = "black";
+        instant_button.textContent = "SLOW";
+        generation_mode = "slow";
+    }
+    window.dispatchEvent(new Event('resize'));
 });
 
 //#endregion
@@ -468,17 +496,40 @@ function test_rotated_images() {
 
 //#endregion
 
-function draw_current_state(matrix) {
+function draw_current_state(matrix, mode) {
 
-    draw_gridlines();
+    if (mode == "fast") {
 
-    for (let i = 0; i < matrix.length; i++) {
-        for (let j = 0; j < matrix[i].length; j++) {
-            let current_box = matrix[i][j];
-            if (current_box.done == true) {
-                ctx.drawImage(rotated_images[current_box.possibilities[0]], j * 50, i * 50, cellSize, cellSize);
+        draw_gridlines();
+
+            for (let i = 0; i < matrix.length; i++) {
+                for (let j = 0; j < matrix[i].length; j++) {
+                    let current_box = matrix[i][j];
+                    if (current_box.done == true) {
+                        ctx.drawImage(rotated_images[current_box.possibilities[0]], j * 50, i * 50, cellSize, cellSize);
+                    }
+                }
             }
-        }
+
+    } else {
+
+        return new Promise(resolve => {
+
+            draw_gridlines();
+
+            for (let i = 0; i < matrix.length; i++) {
+                for (let j = 0; j < matrix[i].length; j++) {
+                    let current_box = matrix[i][j];
+                    if (current_box.done == true) {
+                        ctx.drawImage(rotated_images[current_box.possibilities[0]], j * 50, i * 50, cellSize, cellSize);
+                    }
+                }
+            }
+
+            setTimeout(() => {
+                resolve();
+            }, 10);
+        });
     }
 }
 
@@ -608,7 +659,7 @@ function generate() {
             matrix[i].push(box);
         }
     }
-    draw_current_state(matrix);
+    draw_current_state(matrix, "fast");
 
     // Fill the matrix box-by-box
 
@@ -623,14 +674,14 @@ function generate() {
             let solved_box = solve_next_cell(matrix);
             // Restart generation if any box has zero possible images that fit constraints
             if (recalculate_constraints(matrix, solved_box) == -1) {
-                console.log("Dead-end. Regenerating.");
+                // console.log("Dead-end. Regenerating.");
                 // draw_current_state(matrix);
                 // break;
                 generate();
                 break;
             }
     
-            await draw_current_state(matrix);
+            await draw_current_state(matrix, generation_mode);
         }
 
     }
