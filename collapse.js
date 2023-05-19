@@ -63,10 +63,10 @@ collapse_container.appendChild(canvas);
 
 var heightCap = 10;
 var widthCap = 12;
-var maxHeight = Math.floor(collapse_container.clientHeight / 50);
-var maxWidth = Math.floor(collapse_container.clientWidth / 50);
-collapse_width = Math.min(Math.floor(maxWidth * 0.75), widthCap);
-collapse_height = Math.min(Math.floor(maxHeight * 0.75), heightCap);
+var maxHeight = Math.min(Math.floor(collapse_container.clientHeight / 50), heightCap);
+var maxWidth = Math.min(Math.floor(collapse_container.clientWidth / 50), widthCap);
+collapse_width = Math.min(maxWidth, widthCap);
+collapse_height = Math.min(maxHeight, heightCap);
 canvas.width = String(collapse_width * 50);
 canvas.height = String(collapse_height * 50);
 
@@ -124,7 +124,7 @@ window_width.addEventListener('focus', (event) => {
     draw_gridlines();
 });
 
-// Resize canvas when window is resized
+// Resize canvas and image selector when window is resized
 
 window.addEventListener('resize', function() {
     maxHeight = Math.min(Math.floor(collapse_container.clientHeight / 50), heightCap);
@@ -140,6 +140,19 @@ window.addEventListener('resize', function() {
         canvas.width = String(collapse_width * 50);
     }
     draw_gridlines()
+});
+
+const left_panel = document.getElementById('left_panel');
+const image_selector = document.getElementById('image_selector');
+
+window.addEventListener('resize', function() {
+    if (window.innerWidth <= 1035) {
+        image_selector.style.top = "200px";
+        image_selector.style.height = (left_panel.offsetHeight - 200) + 'px';
+    } else {
+        image_selector.style.top = "150px";
+        image_selector.style.height = (left_panel.offsetHeight - 150) + 'px';
+    }
 });
 
 // Swap between slow and fast generation modes
@@ -694,6 +707,7 @@ function generate() {
 
 }
 
+window.dispatchEvent(new Event('resize'));
 load_new_images();
 
 

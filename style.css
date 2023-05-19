@@ -32,6 +32,18 @@ canvas {
     border-radius: 10px;
 }
 
+.collapse_title {
+    position: absolute; 
+    top: 3%; 
+    left: 2%; 
+    height: 120px; 
+    width: 100%; 
+    color: white;
+    text-align: left;
+    font-size: 2.7em;
+    font-family: Impact, sans-serif;
+}
+
 .generate_button {
     position: absolute;
     background-color: #E7DFDD;
@@ -55,6 +67,66 @@ canvas {
 .generate_button:active {
     background-color: #A239CA;
     color: white;
+}
+
+.image_selector {
+    position: absolute;
+    left: 4.5%;
+    right: 4.5%;
+    top: 200px;
+    height: 400px;
+    /*background-color: #7221be2c;*/
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.image_selector::-webkit-scrollbar {
+    width: 0em;
+}
+
+.image_selector::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+.image_selector::-webkit-scrollbar-thumb {
+    background-color: transparent;
+}
+
+.image_selector_item {
+    padding: 10px;
+    height: 100px;
+    width: 90%;
+    background-color: #7221be2c;
+    margin-bottom: 10px;
+    display: flex;
+    text-align: center;
+    flex-shrink: 0;
+    overflow-y: hidden;
+}
+
+.image_selection_sample {
+    position: absolute;
+    left: 80px;
+    background-color: transparent;
+    height: 100px;
+    right: 5%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: left;
+    overflow-y: hidden;
+}
+
+.image_selection_title {
+    top: 5%;
+    bottom: 5%;
+    width: 49px;
+    background-color: #7221be2c;
+    text-align: center;
+    overflow: hidden;
+    flex-shrink: 0;
 }
 
 .input_field {
@@ -115,4 +187,24 @@ canvas {
     font-family: Impact, sans-serif;
 }
 
+.left_panel {
+    position: absolute;
+    top: 5%;
+    bottom: 20%;
+    left: 2%;
+    width: 25%;
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
+.sideways_text {
+    position: absolute;
+    transform-origin: 0 0;
+    white-space: nowrap;
+    width: fit-content;
+    color: #E7DFDD;
+    font-family: Impact, sans-serif;
+    font-size: 1.5em;
+}
