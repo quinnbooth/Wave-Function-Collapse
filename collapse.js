@@ -183,6 +183,28 @@ instant_button.addEventListener('click', function() {
     window.dispatchEvent(new Event('resize'));
 });
 
+// Make image set previews clickable so user can select one
+
+const basic_selector = document.getElementById('basic_selector');
+const circuit_selector = document.getElementById('circuit_selector');
+var selectors = [basic_selector, circuit_selector];
+
+function setSelection(button) {
+    for (let i = 0; i < selectors.length; i++) {
+        if (selectors[i] == button) {
+            image_set = selectors[i].innerText.toLowerCase();
+            console.log("Chose image set: " + image_set);
+            load_new_images();
+        }
+    }
+}
+
+for (let i = 0; i < selectors.length; i++) {
+    selectors[i].addEventListener('click', function() {
+        setSelection(selectors[i])
+    });
+}
+
 //#endregion
 
 //#region Loading Images
@@ -209,7 +231,7 @@ function draw_gridlines() {
 
 function load_images(image_set) {
 
-    console.log("Loading image set.");
+    // console.log("Loading image set.");
 
     generate_ready = false;
     generate_button.textContent = "LOADING...";
@@ -282,7 +304,7 @@ function get_rotations(images, callback) {
         return;
     }
 
-    console.log("Rotating images.");
+    // console.log("Rotating images.");
 
     rotated = false;
     generate_ready = false;
@@ -402,7 +424,7 @@ function get_rotations(images, callback) {
 
 function load_cells(callback) {
 
-    console.log("Loading images into cells.")
+    // console.log("Loading images into cells.")
     cells = [];
 
     for (let i = 0; i < rotated_images.length; i++) {
@@ -508,6 +530,8 @@ function test_rotated_images() {
 }
 
 //#endregion
+
+//#region Perform Wave Function Collapse
 
 function draw_current_state(matrix, mode) {
 
@@ -704,8 +728,9 @@ function generate() {
     // let max = collapse_height * collapse_width;
     // next_matrix(matrix, max, 0);
 
-
 }
+
+//#endregion
 
 window.dispatchEvent(new Event('resize'));
 load_new_images();

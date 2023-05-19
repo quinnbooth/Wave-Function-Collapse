@@ -107,6 +107,10 @@ canvas {
     overflow-y: hidden;
 }
 
+.image_selector_item:active {
+    background-color: #291a61;
+}
+
 .image_selection_sample {
     position: absolute;
     left: 80px;
