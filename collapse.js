@@ -7,13 +7,13 @@ var cells = [];
 var images = [];
 var rotated_images = [];
 var matrix = [];
-var image_set = "basic";
+var image_set = "circuit";
 var generate_ready = true;
 var cellSize = 50;
 
 const image_count = {
     basic: 6,
-    circuit: 5
+    circuit: 12
 }
 
 class Cell {
@@ -30,7 +30,7 @@ class Cell {
 class Box {
 
     constructor(total_cells, x, y) {
-        this._done = false;
+        this.done = false;
         this.x = x;
         this.y = y;
         this.possibilities = [];
@@ -39,18 +39,18 @@ class Box {
         }
     }
 
-    set done(val) {
-        this._done = val;
-        if (this._done) {
-            // Pick a random possibility
-            let randIndex = Math.floor(Math.random() * this.possibilities.length);
-            this.possibilities = [this.possibilities[randIndex]];
-        }
-    }
+    // set done(val) {
+    //     this._done = val;
+    //     if (this._done) {
+    //         // Pick a random possibility
+    //         let randIndex = Math.floor(Math.random() * this.possibilities.length);
+    //         this.possibilities = [this.possibilities[randIndex]];
+    //     }
+    // }
 
-    get done() {
-        return this._done;
-    }
+    // get done() {
+    //     return this._done;
+    // }
 }
 
 //#region HTML Setup
@@ -510,34 +510,85 @@ function solve_next_cell(matrix) {
     
 }
 
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
 function recalculate_constraints(matrix, box) {
-    let x = box.x;
-    let y = box.y;
-    let neighbor_constraints = cells[box.possibilities[0]];
-    if (x+1 < collapse_width && !matrix[y][x+1].done) {
-        matrix[y][x+1].possibilities = matrix[y][x+1].possibilities.filter((element) => neighbor_constraints.right.includes(element));
-        if (matrix[y][x+1].possibilities.length <= 0) {
-            return -1;
+
+    const x = box.x;
+    const y = box.y;
+    const top_possibilities = (y-1 >= 0 && !matrix[y-1][x].done) ? matrix[y-1][x].possibilities : null;
+    const right_possibilities = (x+1 < collapse_width && !matrix[y][x+1].done) ? matrix[y][x+1].possibilities : null;
+    const bottom_possibilities = (y+1 < collapse_height && !matrix[y+1][x].done) ? matrix[y+1][x].possibilities : null;
+    const left_possibilities = (x-1 >= 0 && !matrix[y][x-1].done) ? matrix[y][x-1].possibilities : null;
+    shuffle(box.possibilities);
+
+    for (let i = 0; i < box.possibilities.length; i++) {
+
+        let constraints = cells[box.possibilities[i]];
+        let side_scores = [];
+
+        if (top_possibilities != null) {
+            let top_score = top_possibilities.filter((element) => constraints.top.includes(element)).length;
+            side_scores.push(top_score);
+        }
+
+        if (right_possibilities != null) {
+            let right_score = right_possibilities.filter((element) => constraints.right.includes(element)).length;
+            side_scores.push(right_score);
+        }
+
+        if (bottom_possibilities != null) {
+            let bottom_score = bottom_possibilities.filter((element) => constraints.bottom.includes(element)).length;
+            side_scores.push(bottom_score);
+        }
+
+        if (left_possibilities != null) {
+            let left_score = left_possibilities.filter((element) => constraints.left.includes(element)).length;
+            side_scores.push(left_score);
+        }
+
+        if (side_scores == []) {
+            box.done = true;
+            box.possibilities = [box.possibilities[i]];
+            return;
+        } else {
+
+            if (side_scores.indexOf(0) == -1) {
+
+                box.done = true;
+                box.possibilities = [box.possibilities[i]];
+
+                if (top_possibilities != null) {
+                    matrix[y-1][x].possibilities = top_possibilities.filter((element) => constraints.top.includes(element));
+                }
+                
+                if (right_possibilities != null) {
+                    matrix[y][x+1].possibilities = right_possibilities.filter((element) => constraints.right.includes(element));
+                }
+
+                if (bottom_possibilities != null) {
+                    matrix[y+1][x].possibilities = bottom_possibilities.filter((element) => constraints.bottom.includes(element));
+                }
+
+                if (left_possibilities != null) {
+                    matrix[y][x-1].possibilities = left_possibilities.filter((element) => constraints.left.includes(element));
+                }
+
+                return;
+            }
         }
     }
-    if (x-1 >= 0 && !matrix[y][x-1].done) {
-        matrix[y][x-1].possibilities = matrix[y][x-1].possibilities.filter((element) => neighbor_constraints.left.includes(element));
-        if (matrix[y][x-1].possibilities.length <= 0) {
-            return -1;
-        }
-    }
-    if (y+1 < collapse_height && !matrix[y+1][x].done) {
-        matrix[y+1][x].possibilities = matrix[y+1][x].possibilities.filter((element) => neighbor_constraints.bottom.includes(element));
-        if (matrix[y+1][x].possibilities.length <= 0) {
-            return -1;
-        }
-    }
-    if (y-1 >= 0 && !matrix[y-1][x].done) {
-        matrix[y-1][x].possibilities = matrix[y-1][x].possibilities.filter((element) => neighbor_constraints.top.includes(element));
-        if (matrix[y-1][x].possibilities.length <= 0) {
-            return -1;
-        }
-    }
+
+    // console.log("\nFAILED");
+    // console.log("(x, y) : " + String(x) + ", " + String(y));
+
+    return -1;
+
 }
 
 function generate() {
@@ -572,6 +623,9 @@ function generate() {
             let solved_box = solve_next_cell(matrix);
             // Restart generation if any box has zero possible images that fit constraints
             if (recalculate_constraints(matrix, solved_box) == -1) {
+                console.log("Dead-end. Regenerating.");
+                // draw_current_state(matrix);
+                // break;
                 generate();
                 break;
             }
