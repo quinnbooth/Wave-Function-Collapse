@@ -7,7 +7,7 @@ var cells = [];
 var images = [];
 var rotated_images = [];
 var matrix = [];
-var image_set = "octo";
+var image_set = "circuit";
 var generate_ready = true;
 var cellSize = 50;
 
@@ -15,7 +15,8 @@ const image_count = {
     basic: 6,
     circuit: 12,
     roots: 12,
-    octo: 8
+    octo: 8,
+    blob: 7
 }
 
 class Cell {
@@ -191,7 +192,8 @@ const basic_selector = document.getElementById('basic_selector');
 const circuit_selector = document.getElementById('circuit_selector');
 const roots_selector = document.getElementById('roots_selector');
 const octo_selector = document.getElementById('octo_selector');
-var selectors = [basic_selector, circuit_selector, roots_selector, octo_selector];
+const blob_selector = document.getElementById('blob_selector');
+var selectors = [basic_selector, circuit_selector, roots_selector, octo_selector, blob_selector];
 
 function setSelection(button) {
     for (let i = 0; i < selectors.length; i++) {
