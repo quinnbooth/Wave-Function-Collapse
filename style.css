@@ -120,6 +120,7 @@ canvas {
     flex-wrap: wrap;
     align-items: left;
     overflow-y: hidden;
+    overflow-x: hidden;
 }
 
 .image_selection_title {
