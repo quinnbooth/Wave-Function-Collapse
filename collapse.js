@@ -213,6 +213,75 @@ for (let i = 0; i < selectors.length; i++) {
     });
 }
 
+// Make clickable button that prompts for custom image set upload
+
+function upload() {
+    document.getElementById('upload').click();
+}
+
+const upload_field = document.getElementById('upload');
+
+upload_field.addEventListener('change', (event) => {
+
+    const uploaded_images = event.target.files;
+    generate_ready = false;
+    generate_button.textContent = "LOADING...";
+    draw_gridlines();
+    images = [];
+    var loaded = 0;
+
+    function imageLoaded() {
+        loaded++;
+        console.log(loaded);
+        if (loaded === uploaded_images.length) {
+            generate_ready = true;
+        }
+    }
+
+    for (let i = 0; i < uploaded_images.length; i++) {
+
+        const uploaded_image = uploaded_images[i];
+        const reader = new FileReader();
+    
+        reader.onload = (function(image) {
+
+            return function(e) {
+                image.crossOrigin = "Anonymous";
+                image.onload = imageLoaded;
+                image.src = e.target.result;
+                images.push(image);
+            };
+        
+        })(new Image());
+  
+        reader.readAsDataURL(uploaded_image);
+    }
+
+    get_rotations(images);
+    setTimeout(() => {
+        load_cells(function () {
+            setTimeout(() => {
+                determine_constraints();
+                generate_ready = true;
+                generate_button.textContent = "GENERATE";
+
+                console.log(images);
+
+                let x = 0;
+                let y = 0;
+                for (let i = 0; i < images.length; i++) {
+                    ctx.drawImage(images[i], x, y, 50, 50);
+                    x += 50;
+                    if (x > canvas.width - 50) {
+                        x = 0;
+                        y += 50;
+                    }
+                }
+            }, 100);
+        });
+    }, 1000);
+});
+
 //#endregion
 
 //#region Loading Images

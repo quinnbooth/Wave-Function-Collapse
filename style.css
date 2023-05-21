@@ -212,3 +212,16 @@ canvas {
     font-family: Impact, sans-serif;
     font-size: 1.5em;
 }
+
+.upload_button {
+    color: white;
+    top: 100px;
+    width: 100%;
+    text-align: center;
+    font-size: 3em;
+    font-family: Impact, sans-serif;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    overflow: hidden;
+}
