@@ -21,7 +21,7 @@ Visit: https://quinnbooth.github.io/Wave-Function-Collapse/
 
 ## How to Use
 
-Select an image preset on the left, or upload your own. Then click the "GENERATE" button! You may adjust the dimensions of the grid using the height and width fields. Additionally, you can toggle between fast and slow generation modes using the speed button.<br><br>
+Visit the aforementioned webpage. Select an image preset on the left, or upload your own. Then click the "GENERATE" button! You may adjust the dimensions of the grid using the height and width fields. Additionally, you can toggle between fast and slow generation modes using the speed button.<br><br>
 
 ## Uploading Custom Images
 
