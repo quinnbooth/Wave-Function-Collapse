@@ -21,40 +21,35 @@ const image_count = {
 }
 
 class Cell {
+
     constructor(image, colors) {
+
         this.image = image;
         this.colors = colors;
         this.top = [];
         this.right = [];
         this.bottom = [];
         this.left = [];
+
     }
+
 }
 
 class Box {
 
     constructor(total_cells, x, y) {
+
         this.done = false;
         this.x = x;
         this.y = y;
         this.possibilities = [];
+
         for (let i = 0; i < total_cells; i++) {
+
             this.possibilities.push(i);
+
         }
     }
-
-    // set done(val) {
-    //     this._done = val;
-    //     if (this._done) {
-    //         // Pick a random possibility
-    //         let randIndex = Math.floor(Math.random() * this.possibilities.length);
-    //         this.possibilities = [this.possibilities[randIndex]];
-    //     }
-    // }
-
-    // get done() {
-    //     return this._done;
-    // }
 }
 
 //#region HTML Setup
