@@ -233,7 +233,6 @@ upload_field.addEventListener('change', (event) => {
     // Update this count when the images load asynchronously, make a flag true when all are done.
     function imageLoaded() {
         loaded++;
-        console.log(loaded);
         if (loaded === uploaded_images.length) {
             generate_ready = true;
         }
@@ -669,9 +668,10 @@ function solve_next_cell(matrix) {
 
     // Pick a box at random to solve from the low entropy list
     let randIndex = Math.floor(Math.random() * lowEntropyCells.length);
-    lowEntropyCells[randIndex].done = true;
-    return lowEntropyCells[randIndex];
-    
+    if (lowEntropyCells[randIndex] != undefined) {
+        lowEntropyCells[randIndex].done = true;
+        return lowEntropyCells[randIndex];
+    }
 }
 
 function shuffle(array) {
@@ -684,6 +684,8 @@ function shuffle(array) {
 }
 
 function recalculate_constraints(matrix, box) {
+
+    if (box == undefined) return;
 
     const x = box.x;
     const y = box.y;
@@ -798,7 +800,6 @@ function test_rotated_images() {
     }
 }
 
-
 function generate() {
 
     if (!generate_ready) return;
@@ -827,7 +828,7 @@ function generate() {
     async function next_matrix() {
 
         while (c < max) {
-    
+        
             let solved_box = solve_next_cell(matrix);
             c++;
 
