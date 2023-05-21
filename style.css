@@ -203,6 +203,10 @@ canvas {
     align-items: center;
 }
 
+.link {
+    margin-top: 10px;
+}
+
 .sideways_text {
     position: absolute;
     transform-origin: 0 0;

@@ -115,11 +115,17 @@
                     </div>
                 </div>
                 <div class="image_selector_item" onclick="upload()">
-                    <div class="upload_button">UPLOAD</div>
+                    <div class="upload_button" id="upload_button">UPLOAD</div>
                     <input type="file" id="upload" accept=".png" multiple style="display: none;">
                 </div>
-                <div class="image_selector_item"></div>
-                <div class="image_selector_item"></div>
+                <div class="image_selector_item" onclick="goto_repo()">
+                    <div class="upload_button" id="upload_button" style="font-size: 1em; flex-direction: column;">
+                        Detailed upload instructions:<br>
+                        <span class="link">
+                            <a href="https://github.com/quinnbooth/Wave-Function-Collapse" target="_blank" style="color: rgb(135, 135, 255);" id="repo_link">GITHUB REPO</a>
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
         <script defer src="./collapse.js"></script>
